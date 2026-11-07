@@ -1052,6 +1052,7 @@ def question_only_reward_fn(response, ground_truth, fast=True):
     print("model-answer", model_answer)
     if model_answer is None:
         # Cannot even parse anything.
+        print("case where format reward zero. :" , response , "<--->" , ground_truth  , "<--->" , model_answer)
         return {
             "format_reward": 0.0,
             "answer_reward": 0.0,
@@ -1074,6 +1075,7 @@ def question_only_reward_fn(response, ground_truth, fast=True):
         }
     else:
         # Formatted but wrong answer; no format reward to avoid hacking.
+        print("case where format reward one and answer reward zero. :" , response , "<--->" , ground_truth  , "<--->" , model_answer)
         return {
             "format_reward": 1.0,
             "answer_reward": 0.0,
