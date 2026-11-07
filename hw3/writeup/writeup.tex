@@ -1,0 +1,277 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!10},
+}
+
+\title{Assignment 3: Reasoning RL \\ Building LLM Reasoners}
+\author{Rose Zheng}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+%% ============================================================
+\section{Measuring Zero-Shot MATH Performance (Section 3)}
+%% ============================================================
+
+% ----------------------------------------
+\subsection*{Problem (math\_baseline): 8 points}
+
+\subsubsection*{(a) Model output and reward function analysis}
+
+\textbf{Question:} Familiarize yourself with \texttt{evaluate.py} and run it with Qwen 2.5 Math 1.5B. For the MATH dataset, how many model generations fall into each of the following categories:
+\begin{enumerate}
+  \item Correct with both format and answer reward 1
+  \item Format reward 1 and answer reward 0
+  \item Format reward 0 and answer reward 0
+\end{enumerate}
+Observing at least 10 cases where format reward is 0, do you think the issue is with the base model's output, or the parser? Why? What about in (at least 10) cases where format reward is 1 but answer reward is 0?
+
+\textbf{Deliverable:} Commentary on the model and reward function performance, including examples of each category.
+
+\textbf{Answer:}
+
+% Category counts
+\begin{itemize}
+  \item Category 1 (format=1, answer=1): \textbf{TODO}
+  \item Category 2 (format=1, answer=0): \textbf{TODO}
+  \item Category 3 (format=0, answer=0): \textbf{TODO}
+\end{itemize}
+
+% Examples of format reward = 0
+\textbf{Format reward = 0 examples and analysis:}
+
+\begin{lstlisting}
+% Paste example outputs here
+TODO
+\end{lstlisting}
+
+% Is the issue with the model or the parser?
+TODO
+
+% Examples of format reward = 1, answer reward = 0
+\textbf{Format reward = 1, answer reward = 0 examples and analysis:}
+
+\begin{lstlisting}
+% Paste example outputs here
+TODO
+\end{lstlisting}
+
+TODO
+
+% ----------------------------------------
+\subsubsection*{(b) Zero-shot baseline performance}
+
+\textbf{Question:} How well does the Qwen 2.5 Math 1.5B zero-shot baseline perform on MATH?
+
+\textbf{Deliverable:} 1--2 sentences with evaluation metrics.
+
+\textbf{Answer:}
+
+TODO
+
+
+%% ============================================================
+\section{Supervised Finetuning for MATH (Section 4)}
+%% ============================================================
+
+% ----------------------------------------
+\subsection*{Problem (tokenize\_prompt\_and\_output): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{tokenize\_prompt\_and\_output}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (compute\_entropy): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{compute\_entropy}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (get\_response\_log\_probs): Response log-probs}
+
+\textbf{Deliverable:} Implement \texttt{get\_response\_log\_probs}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (masked\_normalize): 2 points}
+
+\textbf{Deliverable:} Implement \texttt{masked\_normalize}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (sft\_microbatch\_train\_step): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{sft\_microbatch\_train\_step}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (sft\_experiment): Run SFT on the MATH dataset --- 10 points}
+
+\subsubsection*{(1) SFT training with varying dataset sizes}
+
+\textbf{Question:} Run SFT on the reasoning SFT examples training data in the Prime Intellect dataset using the Qwen 2.5 Math 1.5B base model, varying the number of unique examples for SFT in the range \{128, 256, 512, 1024\}, along with using the full dataset. Tune the learning rate and batch size until you see the loss decrease substantially on the training set (around a 40\% decrease in loss during training).
+
+\textbf{Deliverable:} Validation accuracy curves associated with different dataset sizes.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/sft_accuracy_curves.png}
+
+TODO
+
+\subsubsection*{(2) Test set performance}
+
+\textbf{Question:} What results does your best model achieve on the test sets of (1) Prime Intellect data; (2) MATH data?
+
+\textbf{Deliverable:} Describe your findings.
+
+\textbf{Answer:}
+
+TODO
+
+
+%% ============================================================
+\section{Group Relative Policy Optimization (Section 7)}
+%% ============================================================
+
+% ----------------------------------------
+\subsection*{Problem (compute\_group\_normalized\_rewards): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{compute\_group\_normalized\_rewards}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (compute\_naive\_policy\_gradient\_loss): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{compute\_naive\_policy\_gradient\_loss}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (compute\_grpo\_clip\_loss): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{compute\_grpo\_clip\_loss}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (compute\_policy\_gradient\_loss): 4 points}
+
+\textbf{Deliverable:} Implement \texttt{compute\_policy\_gradient\_loss}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (masked\_mean): 2 points}
+
+\textbf{Deliverable:} Implement \texttt{masked\_mean}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_microbatch\_train\_step): 8 points}
+
+\textbf{Deliverable:} Implement \texttt{grpo\_microbatch\_train\_step}. (Code submission.)
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_train\_loop): GRPO train loop --- 15 points}
+
+\textbf{Question:} Implement a complete train loop for GRPO. Begin training a policy on Countdown and confirm that you see validation rewards improving, along with sensible rollouts over time.
+
+\textbf{Deliverable:} A plot with the validation rewards with respect to steps, and a few example rollouts over time.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/grpo_train_loop_rewards.png}
+
+% Example rollouts
+\begin{lstlisting}
+TODO
+\end{lstlisting}
+
+TODO
+
+
+%% ============================================================
+\section{GRPO Experiments (Section 8)}
+%% ============================================================
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_learning\_rate): Tune the learning rate --- 8 points}
+
+\textbf{Question:} Starting with the suggested hyperparameters, perform a sweep over the learning rates and report the final validation answer rewards (or note divergence if the optimizer diverges). Try at least 3 learning rates.
+
+\textbf{Deliverable:} Validation reward curves associated with multiple learning rates. A model that achieves validation accuracy of at least 30\% on Countdown. A brief 2 sentence discussion on any other trends you notice on other logged metrics.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/grpo_lr_sweep.png}
+
+TODO
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_baselines): Effect of baselining --- 6 points}
+
+\textbf{Question:} Train a policy with \texttt{reinforce\_with\_baseline} and with \texttt{no\_baseline}.
+
+\textbf{Deliverable:} Validation reward curves associated with each loss type. A brief 2 sentence discussion on any other trends you notice on other logged metrics.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/grpo_baselines.png}
+
+TODO
+
+% ----------------------------------------
+\subsection*{Problem (think\_about\_length\_normalization): 3 points}
+
+\textbf{Question:} Compare the two approaches (\texttt{masked\_mean} vs \texttt{masked\_normalize}) without running experiments yet. What are the pros and cons of each approach? Are there any specific settings or examples where one approach seems better?
+
+\textbf{Deliverable:} Written comparison.
+
+\textbf{Answer:}
+
+TODO
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_length\_normalization): Effect of length normalization --- 6 points}
+
+\textbf{Question:} Compare normalization with \texttt{masked\_mean} and \texttt{masked\_normalize} with an end-to-end GRPO training run. Report the validation answer reward curves. Comment on the findings, including any other metrics that have a noticeable trend. Hint: consider metrics related to stability, such as the gradient norm.
+
+\textbf{Deliverable:} Validation answer reward curves, commentary.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/grpo_length_norm.png}
+
+TODO
+
+% ----------------------------------------
+\subsection*{Problem (grpo\_group\_standard\_deviation): Effect of standard deviation normalization --- 4 points}
+
+\textbf{Question:} Compare the performance of \texttt{use\_std\_normalization == True} and \texttt{use\_std\_normalization == False}. Report the validation answer reward curves. Comment on the findings, including any other metrics that have a noticeable trend. Hint: consider metrics related to stability, such as the gradient norm.
+
+\textbf{Deliverable:} Validation answer reward curves, commentary.
+
+\textbf{Answer:}
+
+% Include figure(s)
+% \includegraphics[width=\textwidth]{figures/grpo_std_norm.png}
+
+TODO
+
+% ----------------------------------------
+\subsection*{[OPTIONAL] Problem (grpo\_off\_policy): Implement off-policy GRPO}
+
+\textbf{Question:} Implement off-policy GRPO training.
+
+\textbf{Answer:}
+
+TODO (Optional)
+
+
+\end{document}
