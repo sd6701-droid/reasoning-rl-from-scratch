@@ -11,6 +11,7 @@ from student.drgrpo_grader import question_only_reward_fn
 
 def load_prompt(name: str = "intellect") -> str:
     path = Path(__file__).parent / "prompts" / f"{name}.prompt"
+    print('path of intellect-dataset', path)
     return path.read_text()
 
 
@@ -39,12 +40,15 @@ def main():
 
     prompt_template = load_prompt("intellect")
 
+    print("prompt_template", prompt_template)
     # Load model
     llm = LLM(
         model=args.model,
         trust_remote_code=True,
         gpu_memory_utilization=args.gpu_memory_utilization,
     )
+
+    print("llm", llm)
 
     # Evaluate on Intellect test
     print(f"\n=== Intellect Test ({args.intellect_path}) ===")
@@ -79,4 +83,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Hello --- world")
     main()
