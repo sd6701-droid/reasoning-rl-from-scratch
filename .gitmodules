@@ -1,0 +1,3 @@
+[submodule "hw3/code/nyu-llm-reasoners-a3"]
+	path = hw3/code/nyu-llm-reasoners-a3
+	url = https://github.com/gregdurrett/nyu-llm-reasoners-a3
