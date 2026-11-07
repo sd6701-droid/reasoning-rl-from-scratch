@@ -19,10 +19,12 @@ def evaluate(llm, prompts, ground_truths):
     """Run evaluation and return accuracy."""
     params = SamplingParams(temperature=0.0, max_tokens=2048)
     outputs = llm.generate(prompts, params)
-
+    print("outputs", outputs)
+    print("ground-truths", ground_truths)
     correct = 0
     for i, output in enumerate(tqdm(outputs, desc="Grading")):
         text = output.outputs[0].text
+        print(text, "----->", ground_truths[i])
         reward = question_only_reward_fn(text, ground_truths[i])
         correct += reward["reward"]
 
