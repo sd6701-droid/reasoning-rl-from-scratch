@@ -32,7 +32,7 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
 
         response_mask = ([0] * (len(prompt_ids) - 1) + [1] * len(response_ids)) 
 
-        input_ids_list.append(input_ids[:-1])
+        input_ids_list.append(input_ids)
         label_ids_list.append(labels_ids)
         response_mask_list.append(response_mask)
 
@@ -41,7 +41,7 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
     pad_token = tokenizer.pad_token_id
     for i in range(len(input_ids_list)):
         rem_pad = max_length_input_list - len(input_ids_list[i])
-        input_ids_list[i] = input_ids_list[i] + [pad_token] * rem_pad
+        input_ids_list[i] = (input_ids_list[i] + [pad_token] * rem_pad)[:-1]
         label_ids_list[i] = label_ids_list[i] + [pad_token] * rem_pad
         response_mask_list[i] = response_mask_list[i] + [False] * rem_pad
 
