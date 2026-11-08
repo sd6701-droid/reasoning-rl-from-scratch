@@ -39,9 +39,9 @@ def evaluate_math_dataset(llm, prompts, ground_truths):
     print("ground-truths", ground_truths)
 
     correct = 0
-    format_reward_error = 0
-    answer_reward_error = 0
-    cr = 0
+    format_reward_error = 0.0
+    answer_reward_error = 0.0
+    cr = 0.0
     for i, output in enumerate(tqdm(outputs, desc="Grading")):
         text = output.outputs[0].text
         print(text, "----->", ground_truths[i])
@@ -52,11 +52,11 @@ def evaluate_math_dataset(llm, prompts, ground_truths):
 
         if format_reward == 1.0:
             if answer_reward == 1.0:
-               cr += 1 
+               cr += 1.0 
             else:
                 answer_reward_error += 1
         else :
-            format_reward_error += 1
+            format_reward_error += 1.0
 
 
         correct += reward["reward"]
