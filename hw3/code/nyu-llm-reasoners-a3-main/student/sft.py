@@ -14,11 +14,11 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
     response_mask_list = []
     for prompt, response in zip(prompt_strs, output_strs):
          # tokenize input 
-        prompt_ids = tokenizer(prompt, add_special_tokens=False)
+        prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
 
 
         # tokenize the output/responses
-        response_ids = tokenizer(response, add_special_tokens=True)
+        response_ids = tokenizer(response, add_special_tokens=False)["input_ids"]
 
         print("Prompt IDs:", len(prompt_ids),  prompt_ids)
         print("Output IDs:", len(response_ids), response_ids)
