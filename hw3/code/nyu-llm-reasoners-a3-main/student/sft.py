@@ -55,6 +55,26 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
 def compute_entropy (logits) :
 
     print("logits", logits)
+    ans = []
+    for b in range(len(logits)):
+        seq_entropy = []
+        for s in range(len(logits[b])):
+           
+           token_logits = logits[b, s, :]
+           probs = torch.softmax(token_logits, dim = -1)
+           log_probs = torch.log_softmax(token_logits, dim = -1)
+
+           entropy = - (probs * log_probs).sum(dim = -1)
+           seq_entropy.append(entropy)
+        ans.append(torch.stack(seq_entropy))
+    
+    return torch.stack(ans)
+
+
+         
+
+
+    
 
 
 
