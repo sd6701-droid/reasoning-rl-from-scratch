@@ -48,13 +48,12 @@ def evaluate_math_dataset(llm, prompts, ground_truths):
         reward = question_only_reward_fn(text, ground_truths[i])
         format_reward = reward["format_reward"]
         answer_reward = reward["answer_reward"]
-        reward = reward["reward"]
 
         if format_reward == 1.0:
             if answer_reward == 1.0:
-               cr += 1.0 
+                correct_2 = 0    
             else:
-                answer_reward_error += 1
+                answer_reward_error += 1.0
         else :
             format_reward_error += 1.0
 
