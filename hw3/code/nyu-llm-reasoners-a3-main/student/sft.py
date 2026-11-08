@@ -70,7 +70,7 @@ def main():
         prompts.append(sys_msg + "\n\n" + user_msg if sys_msg else user_msg)
         gts.append(ex.get("ground_truth", ""))
 
-    tokenize_prompt_and_output(prompt_strs = prompts, output_strs = gts, tokenizer)
+    tokenize_prompt_and_output(prompt_strs = prompts, output_strs = gts, tokenizer=tokenizer)
 
 
 
