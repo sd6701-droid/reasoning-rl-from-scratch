@@ -2,7 +2,7 @@
 
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from evaluate import load_prompt
+from student.evaluate import load_prompt
 from datasets import load_dataset, load_from_disk
 
 def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer): 
