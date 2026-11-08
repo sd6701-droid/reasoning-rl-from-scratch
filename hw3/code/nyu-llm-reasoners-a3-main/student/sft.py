@@ -12,6 +12,7 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
     input_ids_list = []
     label_ids_list = []
     response_mask_list = []
+    labels = []
     for prompt, response in zip(prompt_strs, output_strs):
          # tokenize input 
         prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
@@ -33,7 +34,7 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
         label_ids_list.append(labels_ids)
         response_mask_list.append(response_mask)
 
-    return input_ids_list, label_ids_list, response_mask_list
+    return { input_ids : input_ids_list, labels: label_ids_list, response_mask: response_mask_list} 
 
 
 
