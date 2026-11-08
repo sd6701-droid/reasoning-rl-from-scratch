@@ -61,7 +61,7 @@ def evaluate_math_dataset(llm, prompts, ground_truths):
 
         correct += reward["reward"]
 
-    print("correct", correct, "format_reward_error", format_reward_error, "answer_reward_error", answer_reward_error)
+    print(len(outputs), "correct-answer", correct, "format_reward_error-answer", format_reward_error, "answer_reward_error-answer", answer_reward_error)
     return correct / len(outputs)
 
 
