@@ -45,8 +45,6 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
         label_ids_list[i] = label_ids_list[i] + [pad_token] * rem_pad
         response_mask_list[i] = response_mask_list[i] + [False] * rem_pad
 
-
-
     return { 
         "input_ids" : torch.tensor(input_ids_list, dtype=torch.long), 
         "labels": torch.tensor(label_ids_list, dtype=torch.long), 
@@ -54,7 +52,9 @@ def tokenize_prompt_and_output(prompt_strs, output_strs, tokenizer):
     } 
 
 
+def compute_entropy (logits) :
 
+    print("logits", logits)
 
 
 
