@@ -184,17 +184,6 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
 
 
 
-    
-
-
-
-
-
-
-
-
-
-
 def main():
     import argparse
     parser = argparse.ArgumentParser()
