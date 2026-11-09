@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="Qwen/Qwen2.5-Math-1.5B")
     parser.add_argument("--intellect-path", default="/gpfs/scratch/sd6701/personal/salt/grpo/data-distrib/intellect_math/test")
-    parser.add_argument("--lr", default="0.0002")
+    parser.add_argument("--lr", default=0.0002)
 
     args = parser.parse_args()
 
@@ -37,7 +37,15 @@ def main():
     prompt_template = load_prompt("intellect")
 
     print(f"\n=== Intellect Test ({args.intellect_path}) ===")
+    
+    # loading the data from the dataset right ??
     dataset = load_from_disk(args.intellect_path)
+
+    print("dataset columns", dataset.columns_names)
+
+    print("First Examples", dataset[0])
+
+
 
     prompts, gts = [], []
     for ex in dataset: 
@@ -48,8 +56,8 @@ def main():
         gts.append(ex.get("ground_truth", ""))
     
 
-    print("prompts", prompts)
-    print("gts", gts)
+    # print("prompts", prompts)
+    # print("gts", gts)
     tokenize_prompt_and_output(prompt_strs = prompts, output_strs = gts, tokenizer=tokenizer)
 
 
