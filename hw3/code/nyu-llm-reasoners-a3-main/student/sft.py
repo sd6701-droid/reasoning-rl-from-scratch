@@ -141,6 +141,26 @@ def masked_normalize (tensor, mask, dim, normalize_constant):
 
 
 
+def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumulation_steps, normalize_constant):
+
+    masked_pertoken_loss = -1 * policy_log_probs
+
+    loss = masked_normalize(masked_pertoken_loss, response_mask, None, normalize_constant)
+
+    loss = loss / gradient_accumulation_steps
+
+    loss.backward()
+
+
+    return loss, {}
+
+
+
+
+
+
+
+
 
     
 
