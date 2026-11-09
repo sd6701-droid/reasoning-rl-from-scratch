@@ -71,7 +71,66 @@ def compute_entropy (logits) :
     return torch.stack(ans)
 
 
-         
+def get_response_log_probs (model, input_ids, labels, return_token_entropy) :
+
+    
+   
+
+    output = model(input_ids).logits
+
+    # log_softmax ovwer V
+
+    log_probs = torch.log_softmax(output, dim = -1)
+
+    labels = labels.unsqueeze(-1)
+
+    # this one of the important part 
+
+# --- Selecting the log-prob of each label token (gather) ---
+#
+# log_probs has shape (batch, seq_len, vocab_size): for every position,
+# a full log-distribution over the vocabulary (last axis = vocab).
+#
+# Example: log_probs shape (1, 2, 4)
+#   position 0: [-2.0, -1.0, -3.0, -0.5]
+#   position 1: [-4.0, -2.0, -0.1, -3.0]
+#   labels = [[3, 1]]  -> shape (1, 2)
+#
+# Goal: at each position, pick the entry whose vocab index == label.
+#   position 0, label 3 -> -0.5
+#   position 1, label 1 -> -2.0
+#   expected result: [[-0.5, -2.0]], shape (1, 2) == l
+#
+# Key ideas:
+#   - The gather dimension says WHERE to select (the vocab axis).
+#   - The label values say WHICH vocab indices to sele
+#   - gather requires index to have the same number of dims as the input,
+#     so labels needs an extra trailing size-1 dim bef
+#     (values unchanged, only shape (B, S) -> (B, S, 1)).
+#   - gather's output has the index's shape (B, S, 1),
+#     trailing dim afterward to get (B, S).
+#   - index must be an int64 (long) tensor.
+
+    selcted_log_probs = torch.gather(log_probs, dim = -1, index = labels)
+
+    selcted_log_probs.squeeze(-1)
+
+
+    if return_token_entropy:
+        token_entropy = compute_entropy(output)
+
+    
+    if return_token_entropy:
+        return {
+            "log_probs": log_probs,
+            "token_entropy": token_entropy,
+        }
+
+    return {
+        "log_probs": log_probs,
+    }
+
+
 
 
     
