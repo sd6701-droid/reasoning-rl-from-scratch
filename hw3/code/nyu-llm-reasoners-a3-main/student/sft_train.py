@@ -41,7 +41,6 @@ def main():
     # loading the data from the dataset right ??
     dataset = load_from_disk(args.intellect_path)
 
-    print("dataset columns", dataset.columns_names)
 
     print("First Examples", dataset[0])
 
