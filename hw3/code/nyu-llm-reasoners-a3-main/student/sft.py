@@ -131,6 +131,16 @@ def get_response_log_probs (model, input_ids, labels, return_token_entropy) :
 
 
 
+def masked_normalize (tensor, mask, dim, normalize_constant):
+
+
+    total_sum = torch.sum(tensor * mask, dim = dim) / normalize_constant
+
+
+    return total_sum
+
+
+
 
     
 
