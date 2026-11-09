@@ -145,6 +145,10 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
 
     masked_pertoken_loss = -1 * policy_log_probs
 
+    # 1) Compute per-token NLL as the negative policy log-probabilities.
+    # 2) Mask out prompt and padding tokens so only response tokens contribute.
+    # 3) Sum and normalize the masked losses to obtain the scalar SFT loss.
+
     loss = masked_normalize(masked_pertoken_loss, response_mask, None, normalize_constant)
 
     loss = loss / gradient_accumulation_steps
