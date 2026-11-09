@@ -148,6 +148,24 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
     # 1) Compute per-token NLL as the negative policy log-probabilities.
     # 2) Mask out prompt and padding tokens so only response tokens contribute.
     # 3) Sum and normalize the masked losses to obtain the scalar SFT loss.
+    
+    # Reduction choices:
+#
+# 1) Sum over sequence, then sum over batch (dim=None):
+#    - Produces the total NLL of all response tokens.
+#    - Loss and gradient grow with batch size and response length.
+#    - Changing the microbatch size changes the effective learning rate.
+#
+# 2) Sum over sequence, then mean over batch:
+#    - Produces the average per-example NLL.
+#    - It is insensitive to batch size, but longer responses contribute more
+#      than shorter responses.
+#
+# 3) Mean over all response tokens:
+#    - Produces the average per-token NLL.
+#    - Every response token contributes equally.
+#    - Note: masked_normalize divides by a fixed constant rather than the
+#      number of masked tokens, so it does not compute this directly.
 
     loss = masked_normalize(masked_pertoken_loss, response_mask, None, normalize_constant)
 
