@@ -113,8 +113,7 @@ def get_response_log_probs (model, input_ids, labels, return_token_entropy) :
 
     selcted_log_probs = torch.gather(log_probs, dim = -1, index = labels)
 
-    selcted_log_probs.squeeze(-1)
-
+    selcted_log_probs = selcted_log_probs.squeeze(-1)
 
     if return_token_entropy:
         token_entropy = compute_entropy(output)
@@ -122,12 +121,12 @@ def get_response_log_probs (model, input_ids, labels, return_token_entropy) :
     
     if return_token_entropy:
         return {
-            "log_probs": log_probs,
+            "log_probs": selcted_log_probs,
             "token_entropy": token_entropy,
         }
 
     return {
-        "log_probs": log_probs,
+        "log_probs": selcted_log_probs,
     }
 
 
