@@ -16,41 +16,6 @@ def wandb_init():
     wandb.define_metric("eval/*", step_metric="eval_step")
 
 
-def collate_fn(examples, tokenizer):
-    """convert the list of examples into padded batch"""
-
-    prompt = []
-    response = []
-
-    for example in examples:
-        prompt, response = extract_prompt_response(prompt, response)
-
-
-
-
-def create_dataloader(
-        dataset, 
-        tokenizer,
-        batch_size,
-        dataset_size,
-        seed
-    ) :
-
-
-    dataset = dataset.shuffle(seed=seed)
-
-    #create batches
-    dataloader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            shuffle = True,
-            collate_fn = lambda examples: collate_fn(
-                examples, tokenizer
-            )
-        )
-    
-    return dataloader
-
 
 def train_loop(args):
     torch.manual_seed(args.seed)
@@ -65,8 +30,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="Qwen/Qwen2.5-Math-1.5B")
     parser.add_argument("--intellect-path", default="/gpfs/scratch/sd6701/personal/salt/grpo/data-distrib/intellect_math/test")
-    parser.add_argument("--lr", default=0.0002)
-    parser.add_argument("--batch_size", default=0.0002)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--epochs", type=int, default=3)
 
     args = parser.parse_args()
 
@@ -109,7 +76,6 @@ def main():
                 train_dataset,
                 batch_size=32,
                 shuffle = True,
-                collate_fn=collate_fn
             )
 
     # test forward pass
