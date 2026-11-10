@@ -6,6 +6,7 @@ from datasets import load_dataset, load_from_disk
 from sft import tokenize_prompt_and_output, compute_entropy, get_response_log_probs
 import wandb
 import torch
+from torch.utils.data import DataLoader, TensorDataset
 
 def wandb_init():
     wandb.init(project=args.wandb_project, name=args.wandb_run_name, config=vars(args))
@@ -13,6 +14,42 @@ def wandb_init():
     wandb.define_metric("eval_step")
     wandb.define_metric("train/*", step_metric="train_step")
     wandb.define_metric("eval/*", step_metric="eval_step")
+
+
+def collate_fn(examples, tokenizer):
+    """convert the list of examples into padded batch"""
+
+    prompt = []
+    response = []
+
+    for example in examples:
+        prompt, response = extract_prompt_response(prompt, response)
+
+
+
+
+def create_dataloader(
+        dataset, 
+        tokenizer,
+        batch_size,
+        dataset_size,
+        seed
+    ) :
+
+
+    dataset = dataset.shuffle(seed=seed)
+
+    #create batches
+    dataloader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle = True,
+            collate_fn = lambda examples: collate_fn(
+                examples, tokenizer
+            )
+        )
+    
+    return dataloader
 
 
 def train_loop(args):
@@ -29,6 +66,7 @@ def main():
     parser.add_argument("--model", default="Qwen/Qwen2.5-Math-1.5B")
     parser.add_argument("--intellect-path", default="/gpfs/scratch/sd6701/personal/salt/grpo/data-distrib/intellect_math/test")
     parser.add_argument("--lr", default=0.0002)
+    parser.add_argument("--batch_size", default=0.0002)
 
     args = parser.parse_args()
 
@@ -44,7 +82,7 @@ def main():
 
     print("First Examples", dataset[0])
 
-
+    # create a dataloader
 
     prompts, gts = [], []
     for ex in dataset: 
@@ -57,7 +95,59 @@ def main():
 
     # print("prompts", prompts)
     # print("gts", gts)
-    tokenize_prompt_and_output(prompt_strs = prompts, output_strs = gts, tokenizer=tokenizer)
+    tokenized_data = tokenize_prompt_and_output(prompt_strs = prompts, output_strs = gts, tokenizer=tokenizer)
+
+    train_dataset = TensorDataset(
+                    tokenized_data["input_ids"],
+                    tokenized_data["labels"],
+                    tokenized_data["response_mask"]
+                )
+
+
+
+    dataloader = DataLoader(
+                train_dataset,
+                batch_size=32,
+                shuffle = True,
+                collate_fn=collate_fn
+            )
+
+    # test forward pass
+
+    batch = next(iter(dataloader))
+    input_ids, labels, response_mask = batch
+
+    print("Input:", input_ids.shape)
+    print("Labels:", labels.shape)
+    print("Response mask:", response_mask.shape)
+
+    input_ids = input_ids.cuda()
+    labels = labels.cuda()
+    response_mask = response_mask.cuda()
+
+    
+    # create a model that would give us logits 
+
+    model_name = "Qwen/Qwen2.5-Math-1.5B"
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype = torch.bfloat16
+    ).to("cuda")
+
+    model.train()
+
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr = 2e-4
+    )
+
+
+    with torch.no_grad():
+        logits = model(input_ids).logits
+
+    print("logits-shape", logits.shape)
+
 
 
 
