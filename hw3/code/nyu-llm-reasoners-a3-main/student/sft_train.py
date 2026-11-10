@@ -206,3 +206,29 @@ if __name__ == "__main__" :
 
 
 
+
+
+
+# remaining steps for evaluation 
+
+# Right now nothing in sft_train.py generates tokens, and that's expected. The real question is how the weights you train end up in whatever does the generating.
+
+# Training doesn't do rollouts. In SFT you use teacher forcing. You feed the full prompt plus the target response in one forward pass, and get_response_log_probs scores how likely the model finds each token that's already there. The model never picks a token itself during training.
+
+# Eval does need rollouts. To get accuracy, the model has to generate a response one token at a time. Each new token is sampled from its own output and appended before the next step. Then the reward function grades the finished text. Your student/evaluate.py already does this. Look at line 21: llm.generate(...) with vLLM, greedy decoding (temperature=0.0) and max_tokens=2048. Then question_only_reward_fn grades each output.
+
+# The gap: two separate copies of the model. The vLLM LLM(...) object in evaluate.py loads weights from a path or model name when it's created (line 80). Your training loop updates a different object, the HF AutoModelForCausalLM, in GPU memory. vLLM has no way to see those updates. So the design question is how the trained weights reach vLLM. At a high level there are three options:
+
+# 1. Offline: save, then evaluate. Save a checkpoint at the end (or every N steps) and point evaluate.py --model at it. This is the simplest. What else besides the model weights does vLLM need in that directory to load it?
+# 2. In-loop: sync weights into a running vLLM instance. Create vLLM once, and before each eval copy the current policy's weights into it. Check the handout for this. Assignments like this usually describe the pattern, often with vLLM on a separate GPU. Think about what gpu_memory_utilization=0.85 would leave for training if both shared one GPU.
+# 3. HF generate directly on the training model. It needs no syncing but is much slower. You'd also need to think about .eval(), no_grad, and padding direction for batched generation.
+
+# Questions to answer before you pick one:
+# - What does the handout ask for: accuracy curves during training (which pushes you toward option 2) or only a final number?
+# - How many GPUs do you have?
+# - Your eval prompts in evaluate.py (lines 96–99) are built the same way as your training prompts. But for MATH (line 112) it uses prompt_template. Which format did your model learn, and which will it see at eval?
+# - If you train on reasoning traces, are 2048 new tokens enough for a full trace plus the final answer? What happens to the reward if generation gets cut off?
+
+# A good first sanity check is option 1 on the untrained base model: save it through your own save path, then run evaluate.py on it. If accuracy matches running evaluate.py on Qwen/Qwen2.5-Math-1.5B directly, your save/load path works before training changes anything.
+
+# Which approach does the handout point you toward, and how many GPUs are you running on?
