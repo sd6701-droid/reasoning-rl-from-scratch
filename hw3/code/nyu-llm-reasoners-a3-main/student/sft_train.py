@@ -86,9 +86,15 @@ def train_loop(args):
     global_step = 0
     
     model.train()
+    
+    optimizer.zero_grad()
+
 
     for epoch in range(0, args.epochs):
         # at the start of epoch we need to start 
+
+        group_loss = 0.0
+
         for batch_idx, batch in enumerate(dataloader): 
             input_ids, labels, response_mask = batch
 
@@ -109,10 +115,19 @@ def train_loop(args):
 
             policy_log_probs = response_logits["log_probs"]
 
+            group_start = (
+                batch_idx // args.gradient_accumulation_steps
+            ) * args.gradient_accumulation_steps
+
+            group_size = min(
+                args.gradient_accumulation_steps,
+                len(dataloader) - group_start
+            )
+
             loss = sft_microbatch_train_step(
                     policy_log_probs, 
                     response_mask, 
-                    gradient_accumulation_steps = args.gradient_accumulation_steps, 
+                    gradient_accumulation_steps = group_size, 
                     normalize_constant= args.normalize_constant
                 )
             
@@ -120,6 +135,9 @@ def train_loop(args):
                 ((batch_idx + 1) % args.gradient_accumulation_steps == 0)
                 or (batch_idx + 1) == len(dataloader)
             )
+
+            group_loss += loss.item()
+
             if should_update:
                 # update model parameters
                 optimizer.step()
@@ -127,12 +145,14 @@ def train_loop(args):
                 optimizer.zero_grad()
 
                 global_step += 1
-                
+
                 wandb.log({
-                    "train/loss": loss.item(),
+                    "train/loss": group_loss,
                     "train_step": global_step,
                     "train/epoch": epoch + 1
                 })
+
+                group_loss = 0.0
             
         
     
