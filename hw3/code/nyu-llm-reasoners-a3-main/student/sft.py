@@ -131,7 +131,7 @@ def get_response_log_probs (model, input_ids, labels, return_token_entropy) :
 
 
 
-def masked_normalize (tensor, mask, dim, normalize_constant):
+def masked_normalize (tensor, mask, normalize_constant, dim=None):
 
 
     total_sum = torch.sum(tensor * mask, dim = dim) / normalize_constant
@@ -167,7 +167,12 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
 #    - Note: masked_normalize divides by a fixed constant rather than the
 #      number of masked tokens, so it does not compute this directly.
 
-    loss = masked_normalize(masked_pertoken_loss, response_mask, None, normalize_constant)
+    loss = masked_normalize(
+            masked_pertoken_loss,
+            response_mask,
+            normalize_constant,
+            dim=None,
+        )
 
     loss = loss / gradient_accumulation_steps
 
