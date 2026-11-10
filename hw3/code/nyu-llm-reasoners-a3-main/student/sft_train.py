@@ -64,59 +64,76 @@ def train_loop(args):
 
     dataloader = DataLoader(
                 train_dataset,
-                batch_size=32,
+                batch_size=args.batch_size,
                 shuffle = True,
             )
 
     # test forward pass
 
-    for batch in dataloader: 
-        input_ids, labels, response_mask = batch
+    model_name = args.model
 
-        print("Input:", input_ids.shape)
-        print("Labels:", labels.shape)
-        print("Response mask:", response_mask.shape)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype = torch.bfloat16
+    ).to("cuda")
 
-        input_ids = input_ids.cuda()
-        labels = labels.cuda()
-        response_mask = response_mask.cuda()
+    # create a model that would give us logits 
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr = args.lr
+    )
+
+    global_step = 0
+    
+    model.train()
+
+    for epoch in range(0, args.epochs):
+        # at the start of epoch we need to start 
+        for batch_idx, batch in enumerate(dataloader): 
+            input_ids, labels, response_mask = batch
+
+            print("Input:", input_ids.shape)
+            print("Labels:", labels.shape)
+            print("Response mask:", response_mask.shape)
+
+            input_ids = input_ids.cuda()
+            labels = labels.cuda()
+            response_mask = response_mask.cuda()
 
         
-        # create a model that would give us logits 
+            
 
-        model_name = args.model
+            #convert logits to target tokens 
 
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype = torch.bfloat16
-        ).to("cuda")
+            response_logits = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
 
-        model.train()
+            policy_log_probs = response_logits["log_probs"]
 
-        optimizer = torch.optim.AdamW(
-            model.parameters(),
-            lr = 2e-4
-        )
-
-
-
-        #convert logits to target tokens 
-
-        response_logits = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
-
-        policy_log_probs = response_logits["log_probs"]
-
-        loss = sft_microbatch_train_step(
-                policy_log_probs, 
-                response_mask, 
-                gradient_accumulation_steps = 1, 
-                normalize_constant= 1.0
+            loss = sft_microbatch_train_step(
+                    policy_log_probs, 
+                    response_mask, 
+                    gradient_accumulation_steps = args.gradient_accumulation_steps, 
+                    normalize_constant= args.normalize_constant
+                )
+            
+            should_update = (
+                ((batch_idx + 1) % args.gradient_accumulation_steps == 0)
+                or (batch_idx + 1) == len(dataloader)
             )
-        
-        # update model parameters
-        optimizer.step()
-        # set model parameters to zero / clear gradients
-        optimizer.zero_grad()
+            if should_update:
+                # update model parameters
+                optimizer.step()
+                # set model parameters to zero / clear gradients
+                optimizer.zero_grad()
+
+                global_step += 1
+                
+                wandb.log({
+                    "train/loss": loss.item(),
+                    "train_step": global_step,
+                    "train/epoch": epoch + 1
+                })
+            
         
     
 
