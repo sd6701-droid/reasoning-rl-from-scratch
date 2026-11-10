@@ -174,10 +174,8 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
             dim=1,
         ).mean()
 
-    print("loss-before", loss.item())
     loss = loss / gradient_accumulation_steps
-    print("loss-after", loss.item())
-
+ 
     loss.backward()
 
     print(gradient_accumulation_steps, normalize_constant, loss.item())

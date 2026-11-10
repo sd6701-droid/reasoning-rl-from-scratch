@@ -3,7 +3,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from student.evaluate import load_prompt
 from datasets import load_dataset, load_from_disk
-from sft import tokenize_prompt_and_output, compute_entropy, get_response_log_probs
+from sft import tokenize_prompt_and_output, compute_entropy, get_response_log_probs, sft_microbatch_train_step
 import wandb
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -109,13 +109,33 @@ def main():
     )
 
 
-    with torch.no_grad():
-        logits = model(input_ids).logits
 
-    print("logits-shape", logits.shape)
+    #convert logits to target tokens 
+
+    response_logits = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
+
+    policy_log_probs = response_logits["log_probs"]
+
+    loss = sft_microbatch_train_step(
+            policy_log_probs, 
+            response_mask, 
+            gradient_accumulation_steps = 1, 
+            normalize_constant= 1.0
+        )
+    
+    # update model parameters
+    optimizer.step()
+    # set model parameters to zero / clear gradients
+    optimizer.zero_grad()
+    
+    
+
+    
 
 
 
+
+    
 
 
 
