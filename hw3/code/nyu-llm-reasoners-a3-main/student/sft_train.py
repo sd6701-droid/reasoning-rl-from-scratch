@@ -41,11 +41,14 @@ def train_loop(args):
 
     # create a dataloader
 
+    # the loop is almost ready we need to check the results 
     prompts, gts = [], []
     for ex in dataset: 
         msgs = ex.get("messages", [])
         sys_msg = next((m["content"] for m in msgs if m["role"] == "system"), "")
         user_msg = next((m["content"] for m in msgs if m["role"] == "user"), "")
+        # this is for reasoning trace
+        assistant_msg = next((m["content"] for m in msgs if m["role"] == "assistant"),"")
         prompts.append(sys_msg + "\n\n" + user_msg if sys_msg else user_msg)
         gts.append(ex.get("ground_truth", ""))
     
@@ -124,7 +127,7 @@ def train_loop(args):
                 len(dataloader) - group_start
             )
 
-            loss = sft_microbatch_train_step(
+            loss, metrics = sft_microbatch_train_step(
                     policy_log_probs, 
                     response_mask, 
                     gradient_accumulation_steps = group_size, 
