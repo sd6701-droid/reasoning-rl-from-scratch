@@ -171,8 +171,8 @@ def sft_microbatch_train_step (policy_log_probs, response_mask, gradient_accumul
             masked_pertoken_loss,
             response_mask,
             normalize_constant,
-            dim=None,
-        )
+            dim=1,
+        ).mean()
 
     print("loss-before", loss.item())
     loss = loss / gradient_accumulation_steps
