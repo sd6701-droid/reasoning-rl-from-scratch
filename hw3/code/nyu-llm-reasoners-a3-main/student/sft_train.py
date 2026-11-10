@@ -8,8 +8,12 @@ import wandb
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-def wandb_init():
-    wandb.init(project=args.wandb_project, name=args.wandb_run_name, config=vars(args))
+def wandb_init(args):
+    wandb.init(
+        project=args.wandb_project, 
+        name=args.wandb_run_name, 
+        config=vars(args)
+    )
     wandb.define_metric("train_step")
     wandb.define_metric("eval_step")
     wandb.define_metric("train/*", step_metric="train_step")
@@ -17,27 +21,13 @@ def wandb_init():
 
 
 
+
 def train_loop(args):
     torch.manual_seed(args.seed)
 
-    wandb_init()
+    wandb_init(args)
 
-
-
-
-def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen2.5-Math-1.5B")
-    parser.add_argument("--intellect-path", default="/gpfs/scratch/sd6701/personal/salt/grpo/data-distrib/intellect_math/test")
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--lr", type=float, default=2e-4)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--epochs", type=int, default=3)
-
-    args = parser.parse_args()
-
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-Math-1.5B")
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     prompt_template = load_prompt("intellect")
 
@@ -80,56 +70,81 @@ def main():
 
     # test forward pass
 
-    batch = next(iter(dataloader))
-    input_ids, labels, response_mask = batch
+    for batch in dataloader: 
+        input_ids, labels, response_mask = batch
 
-    print("Input:", input_ids.shape)
-    print("Labels:", labels.shape)
-    print("Response mask:", response_mask.shape)
+        print("Input:", input_ids.shape)
+        print("Labels:", labels.shape)
+        print("Response mask:", response_mask.shape)
 
-    input_ids = input_ids.cuda()
-    labels = labels.cuda()
-    response_mask = response_mask.cuda()
+        input_ids = input_ids.cuda()
+        labels = labels.cuda()
+        response_mask = response_mask.cuda()
 
-    
-    # create a model that would give us logits 
+        
+        # create a model that would give us logits 
 
-    model_name = "Qwen/Qwen2.5-Math-1.5B"
+        model_name = args.model
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype = torch.bfloat16
-    ).to("cuda")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype = torch.bfloat16
+        ).to("cuda")
 
-    model.train()
+        model.train()
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr = 2e-4
-    )
-
-
-
-    #convert logits to target tokens 
-
-    response_logits = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
-
-    policy_log_probs = response_logits["log_probs"]
-
-    loss = sft_microbatch_train_step(
-            policy_log_probs, 
-            response_mask, 
-            gradient_accumulation_steps = 1, 
-            normalize_constant= 1.0
+        optimizer = torch.optim.AdamW(
+            model.parameters(),
+            lr = 2e-4
         )
-    
-    # update model parameters
-    optimizer.step()
-    # set model parameters to zero / clear gradients
-    optimizer.zero_grad()
-    
+
+
+
+        #convert logits to target tokens 
+
+        response_logits = get_response_log_probs(model, input_ids, labels, return_token_entropy=True)
+
+        policy_log_probs = response_logits["log_probs"]
+
+        loss = sft_microbatch_train_step(
+                policy_log_probs, 
+                response_mask, 
+                gradient_accumulation_steps = 1, 
+                normalize_constant= 1.0
+            )
+        
+        # update model parameters
+        optimizer.step()
+        # set model parameters to zero / clear gradients
+        optimizer.zero_grad()
+        
     
 
+
+
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="Qwen/Qwen2.5-Math-1.5B")
+    parser.add_argument("--intellect-path", default="/gpfs/scratch/sd6701/personal/salt/grpo/data-distrib/intellect_math/test")
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--epochs", type=int, default=3)
+    parser.add_argument("--wandb_project", type=str, default="sft-intellect")
+    parser.add_argument("--wandb_run_name", type=str, default="qwen-math-sft")
+
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
+    parser.add_argument("--normalize_constant", type=float, default=1.0)
+
+    parser.add_argument("--save_dir", type=str, default="./checkpoints") 
+
+    args = parser.parse_args()
+
+    train_loop(args)
+    
     
 
 
