@@ -104,13 +104,45 @@ def masked_mean (
     ) :
 
     mask = mask.to(dtype=tensor.dtype)
-    
+
     num = torch.sum(tensor * mask, dim = dim)
     den = torch.sum(mask, dim = dim)
 
 
     return num / den.clamp(min = 1) 
 
+
+def grpo_microbatch_train_step (
+        policy_log_probs,
+        response_mask,
+        gradient_accumulation_steps,
+        loss_type: Literal["no_baseline", "reinforce_with_baseline", "grpo_clip"],
+        raw_rewards,
+        advantages,
+        old_log_probs,
+        cliprange 
+    ):
+
+    # have a similar loss to that microbatch of sft
+
+    loss = compute_policy_gradient_loss (
+        policy_log_probs,
+        loss_type, 
+        raw_rewards, 
+        advantages,
+        old_log_probs,
+        clip_range = cliprange
+    )
+
+    loss = masked_mean(loss, response_mask, dim = None)
+
+    loss = loss / gradient_accumulation_steps
+    
+    loss.backward()
+    
+    return {}
+    
+    
 
 def main(): 
     import argparse
