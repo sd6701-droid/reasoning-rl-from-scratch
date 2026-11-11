@@ -97,6 +97,21 @@ def compute_policy_gradient_loss (
     return loss, {}
 
 
+def masked_mean (
+        tensor,
+        mask,
+        dim
+    ) :
+
+    mask = mask.to(dtype=tensor.dtype)
+    
+    num = torch.sum(tensor * mask, dim = dim)
+    den = torch.sum(mask, dim = dim)
+
+
+    return num / den.clamp(min = 1) 
+
+
 def main(): 
     import argparse
     parser = argparse.ArgumentParser()
