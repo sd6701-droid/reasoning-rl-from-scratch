@@ -1,7 +1,7 @@
 
 
 import torch
-
+from typing import Any, Literal
 
 
 
@@ -40,13 +40,61 @@ def compute_group_normalized_rewards ( reward_fn,
 
 
 
+def compute_naive_policy_gradient_loss(
+        raw_rewards_or_advantages,
+        policy_log_probs
+    ):
+
+    loss =  -1 * raw_rewards_or_advantages * policy_log_probs
+
+    return loss
 
 
+def compute_grpo_clip_loss (
+        advantages,
+        policy_log_probs,
+        old_log_probs,    # reference policy
+        cliprange
+    ) :
 
-    advantage = list(map(lambda x: (x - rewards.mean()) / (rewards.std() + advantage_eps),  rewards)
-                     
+    distribution_shift = torch.exp(policy_log_probs - old_log_probs) 
+    
+    unclip_term = distribution_shift * advantages
+    clip_term = torch.clip(distribution_shift, min = 1 - cliprange, max = 1 + cliprange) * advantages
+    loss = -1 * torch.minimum(unclip_term, clip_term)
 
-    return advantage, rewards, {}
+    return loss, {}
+                
+
+def compute_policy_gradient_loss (
+        policy_log_probs,
+        loss_type: Literal["no_baseline", "reinforce_with_baseline", "grpo_clip"], 
+        raw_rewards, 
+        advantages,
+        old_log_probs,
+        clip_range
+    ):
+
+    if loss_type == "no_baseline":
+        loss, metadata = compute_naive_policy_gradient_loss(
+            raw_rewards, 
+            policy_log_probs
+        )
+
+    elif loss_type == "reinforce_with_baseline":
+        loss, metadata = compute_naive_policy_gradient_loss(
+            advantages,
+            policy_log_probs
+        )
+    elif loss_type == "grpo_clip":
+        loss, metadata = compute_grpo_clip_loss (
+            advantages,
+            policy_log_probs,
+            old_log_probs,    # reference policy
+            cliprange=clip_range
+        )
+
+    return loss, {}
 
 
 def main(): 
